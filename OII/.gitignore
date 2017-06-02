@@ -1,0 +1,14 @@
+0*
+build-*
+**/*.pro*
+**/*~
+**/*.txt
+**/*.swp
+**/*.bak
+**/*.txt
+
+**/*.exe
+**/*.out
+**/__pycache__
+
+.directory

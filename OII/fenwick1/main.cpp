@@ -1,68 +1,69 @@
 #include <bits/stdc++.h>
 
+#define MAX_N 500001
 using namespace std;
 
-#define MAX_N 500000
+int N, M;
 
-int N;
-struct {
+static struct {
     int v[MAX_N+1];
-    void update(int idx, int val) {do{v[idx]+=val;}while((idx += (idx & -idx)) <= N);}
-    int query(int idx) {int ris = 0; do{ris+=v[idx];}while(idx -= (idx & -idx)); return ris;}
+    void update(int idx, int val) {do v[idx]+=val; while((idx += (idx & -idx)) <= N);}
+    int query(int idx) {int r = 0; do r += v[idx]; while(idx -= (idx & -idx)); return r;}
 } fenwick;
 
-int preorder[MAX_N+2];
-int pos_preorder[MAX_N + 2];
-vector<int> grafo[MAX_N+1];
-int paga_orig[MAX_N+1];
-int last_preorder[MAX_N+2];
-void make_preorder(int s, int &i)
+
+vector<int> figli[MAX_N];
+int preorder[MAX_N];
+int employee2preidx[MAX_N];
+int initialwage[MAX_N];
+int boss[MAX_N];
+
+int pre_tmp = 1;
+int last_preorder[MAX_N];
+
+void make_preorder(int v)
 {
-    preorder[i++] = s;
-    for(int j: grafo[s])
-        make_preorder(j, i);
-    last_preorder[s] = i;
+    employee2preidx[v] = pre_tmp;
+    preorder[pre_tmp++] = v;
+    for(int i: figli[v])
+        make_preorder(i);
+    last_preorder[v] = pre_tmp;
 }
 
+void raise(int employee, int wageinc)
+{
+    int preidx = employee2preidx[employee];
+    fenwick.update(preidx+1, wageinc);
+    fenwick.update(last_preorder[employee], -wageinc);
+}
+
+int query(int employee)
+{
+    return fenwick.query(employee2preidx[employee]);
+}
 
 int main()
 {
     freopen("input.txt", "r", stdin);
     freopen("output.txt", "w", stdout);
-    int M;
-    scanf("%d %d %d", &N, &M, paga_orig + 1);
+
+    scanf("%d %d %d", &N, &M, initialwage + 1);
     for(int i = 2; i <= N; i++) {
-        int c, sup;
-        scanf("%d %d", &c, &sup);
-        paga_orig[i] = c;
-        grafo[sup].push_back(i);
+        int wage, b;
+        scanf("%d %d", &wage, &b);
+        initialwage[i] = wage;
+        figli[b].push_back(i);
+        boss[i] = b;
     }
-    // preorder
-    int temp = 1;
-    make_preorder(1, temp);
-    for(int i = 1; i <= temp; i++)
-        pos_preorder[preorder[i]] = i;
-
-    fprintf(stderr, "Preorder: ");
-    for(int i = 1; i <= N; i++)
-        fprintf(stderr, "%d ", preorder[i]);
-    fputs("\n", stderr);
-
-    // calcolo vero e proprio
-    while(--M>=0)
-    {
-        char s;
-        int A;
-        scanf(" %c %d", &s, &A);
-        if(s == 'p') {
-            int X;
-            scanf("%d", &X);
-            fenwick.update(pos_preorder[A]+1, X);
-            fenwick.update(last_preorder[A], -X);
-            fprintf(stderr, "%d\n", fenwick.query(pos_preorder[A]));
+    make_preorder(1);
+    while(M--) {
+        char ch; int employee, incwage;
+        scanf(" %c %d", &ch, &employee);
+        if(ch == 'u')
+            printf("%d\n", initialwage[employee] + query(employee));
+        else {
+            scanf("%d", &incwage);
+            raise(employee, incwage);
         }
-        else
-            printf("%d\n", paga_orig[A] + fenwick.query(pos_preorder[A]) -
-                   fenwick.query(pos_preorder[A] - 1));
     }
 }

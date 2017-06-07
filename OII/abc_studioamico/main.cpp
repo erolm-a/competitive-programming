@@ -13,8 +13,8 @@ static int res;
 bool associabili(int N, int* voti2, int* voti5);
 
 int main() {
-    fr = stdin;
-    fw = stdout;
+    fr = fopen("input.txt", "r");
+    fw = fopen("output.txt", "w");
 
     // Iterators used in for loops
     int i0;

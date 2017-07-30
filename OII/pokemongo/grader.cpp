@@ -51,8 +51,3 @@ int main() {
 
     return EXIT_SUCCESS;
 }
-
-int N, K;
-void init(int orig_N, int orig_K) {
-    N = orig_N, K = orig_K;
-}

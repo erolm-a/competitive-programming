@@ -1,103 +1,87 @@
 #include <bits/stdc++.h>
 
-using namespace std;
+// CREDITS: Luca Cavalleri per il suo segment tree... molto migliore
+// della mia robaccia obbrobriosa
 
-#define MAX_N 50000
-int N;
-
-int st[MAX_N*2];
-bool summable[MAX_N*2];
-int nums[MAX_N+1];
-
-void build(int root, int l, int r)
-{
-    if(l == r) {
-        st[root] = nums[l];
-        summable[root] = nums[l] >= 0;
-    }
-    else {
-        int mid = (l+r)/2;
-        build(root*2+1, l, mid);
-        build(root*2+2, mid+1, r);
-        int cr = root*2+1 + root%2;
-        int s = st[root*2+1] + st[root*2+2];
-        if(summable[cr]) {
-            if(root > 0) st[root] = max(st[cr], s);
-            else st[root] = max(s, max(st[root*2+1], st[root*2+2]));
-            summable[root] = 1;
+template<typename T, T join(T, T)>
+struct segtree {
+    int _l, _r, _m;
+    segtree *_left, *_right;
+    T _val;
+    segtree(int l, int r, T k=T()) {
+        if(l == r) {
+            _l=_m=_r=l;
+            _val=k;
+            _left = _right = nullptr;
         }
-        else st[root] = max(st[root*2+1], st[root*2+2]), summable[root] = 0;
-    }
-}
-
-void update(int root, int l, int r, int idx, int val)
-{
-    if(idx < l || idx > r) return;
-    if(l == r)
-        st[root] = nums[idx] = val, summable[root] = nums[idx] >= 0;
-    else {
-        int mid = (l+r)/2;
-        update(root*2+1, l, mid, idx, val);
-        update(root*2+2, mid+1, r, idx, val);
-        int cr = root*2+1 + root%2;
-        int s = st[root*2+1] + st[root*2+2];
-        if(root > 0 && summable[cr]) {
-            if(root > 0) st[root] = max(st[cr], s);
-            else st[root] = max(s, max(st[root*2+1], st[root*2+2]));
-            summable[root] = 1;
+        else {
+            _l=l,_r=r;_m = (l+r)/2;
+            _left = new segtree(_l,_m,k),_right = new segtree(_m+1,_r,k);
+            _val = join(_left->_val, _right->_val);
         }
-        else if(root == 0)
-            st[root] = summable[1] && summable[2] ? st[1] + st[2] : max(st[1], st[2]);
-        else st[root] = max(st[root*2+1], st[root*2+2]), summable[root] = 0;
     }
+    void set(int p, T v)
+    {
+        if(_l == _r) {_val = v; return;}
+        if(p>_m) _right->set(p, v); else _left->set(p, v);
+        _val = join(_left->_val, _right->_val);
+    }
+
+    T query(int s, int e) {
+        if(_l>=s && _r<=e) return _val;
+        if(s>_m) return _right->query(s, e);
+        if(e <= _m) return _left->query(s, e);
+        return Join(_left->query(s, e), _right->query(s, e));
+    }
+};
+
+struct maxsum {
+    int l, r, max, sum;
+    maxsum()=default;
+    maxsum(int v) {l=r=max=sum=v;}
+    maxsum(int le, int ri, int ma, int s) {l=le, r=ri, max=ma, sum=s;}
+};
+
+maxsum Join(maxsum a, maxsum b) {
+    return maxsum(std::max(a.l, a.sum + b.l), std::max(b.r, b.sum + a.r), std::max(std::max(a.sum + b.sum, a.r + b.l), std::max(a.max, b.max)), a.sum + b.sum);
 }
 
-int query(int root, int l, int r, int start, int end)
-{
-    if(start > r || end < l)
-        return INT_MIN/3;
-    if(start <= l && end >= r)
-        return st[root];
-    int mid = (l+r)/2;
-    int ch[] = {query(root*2+1, l, mid, start, end), query(root*2+2, mid+1, r, start, end)};
-    int s = ch[0] + ch[1];
-    int cr = root%2;
-    if((root > 0 && summable[root*2+1+cr]) ||
-            (root == 0 && summable[1] && summable[2]))
-        return max(s, max(ch[0], ch[1]));
-    else return max(ch[0], ch[1]);
-}
-
-int readint() {
-    int c, n = 0; bool neg = false;
-    while((c = getchar_unlocked()) != -1 && !isspace(c))
-        if(c == '-') neg=true;
-        else n = n*10 + c - '0';
-    return neg ? -n : n;
-}
-
-char read_stripped_char() {
+int readInt () {
+    bool minus = false;
+    int result = 0;
     char ch;
-    while(isspace(ch = getchar_unlocked()));
-    return ch;
+    ch = getchar_unlocked();
+    while (true) {
+        if (ch == '-') break;
+        if (ch >= '0' && ch <= '9') break;
+        ch = getchar_unlocked();
+    }
+    if (ch == '-') minus = true; else result = ch-'0';
+    while (true) {
+        ch = getchar_unlocked();
+        if (ch < '0' || ch > '9') break;
+        result = result*10 + (ch - '0');
+    }
+    if (minus)
+        return -result;
+    else
+        return result;
 }
+
+using namespace std;
 
 int main()
 {
-    freopen("input.txt","r", stdin);
+    freopen("input.txt", "r", stdin);
     freopen("output.txt", "w", stdout);
-
-    N = readint();
-    for(int i = 1; i <= N; i++)
-        nums[i] = readint();
-    build(0, 1, N);
-    int M = readint();
-    while(M--) {
-        int ch = readint(), x = readint(), y = readint();
-        switch(ch) {
-            case 0: update(0, 1, N, x, y); break;
-        case 1: printf("%d\n", query(0, 1, N, x, y));
-        }
+    int N = readInt();
+    segtree<maxsum, Join> V(1, N);
+    for(int i = 1; i <= N; i++) V.set(i, readInt());
+    int Q, a, b, c;
+    Q = readInt();
+    while(Q--){
+        a = readInt(), b = readInt(), c = readInt();
+        if(a) printf("%d\n", V.query(b, c).max);
+        else V.set(b, c);
     }
-    return 0;
 }

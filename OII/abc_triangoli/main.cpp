@@ -15,9 +15,19 @@ int main()
     for(int i = 0; i < N; i++)
         scanf("%d", dim + i);
     sort(dim, dim + N);
-    int ris = 0;
-    for(int i = 0; i < N-2; i++)
-        for(int j = i+1; j < N-1; j++)
-            ris += dim + N - upper_bound(dim, dim + N, dim[i] + dim[j]);
-    printf("%d\n", ris);
+    long long ris = 0;
+    for(int i = 0; i < N-2; i++) {
+        int k = i+2;
+        while(k < N && dim[k] <= dim[i] + dim[i+1]) k++;
+        ris += (N - k);
+        for(int j = i+2; j < N-1; j++) {
+            //fprintf(stderr, "RIS: %lld\n", ris);
+            while(k < N && dim[k] <= dim[i] + dim[j]) k++;
+
+            //if(k > N) fprintf(stderr, "ALERT at %d %d %d\n", i, j, k);
+            ris += (N - k);
+            //fprintf(stderr, "%d %d %d %lld\n", i, j, k, ris);
+        }
+    }
+    printf("%lld\n", ris);
 }

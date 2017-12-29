@@ -1,70 +1,32 @@
 #include <cstdio>
-#include <algorithm>
-#include <stack>
-#include <utility>
 
+#define MAX_K 1000000
+#define MODULO 1000000007
+long long con[MAX_K+1], con_sum[MAX_K+1], pot10[MAX_K+1];
+char s[MAX_K/10];
+int K, S;
+
+long long conta() {
+    pot10[0] = 1;
+    con_sum[S] = con[S] = 1;
+    for(int i = S+1; i <= K; i++) {
+        pot10[i-S] = (pot10[i-S-1]*10) % MODULO;
+        con_sum[i-S] = (10*con_sum[i-S-1] + con[i-S]) % MODULO;
+        con[i] = (MODULO + (((i-S+1)*pot10[i-S]) % MODULO) - con_sum[i-S]) % MODULO;
+    }
+    return con[K];
+}
 using namespace std;
-
-#define M 1000000007
-
-#define MAX_N 10000
-
-int newton[MAX_N+1][MAX_N+1];
-
-int potenza(int exp) {
-    long long base = 1;
-    while(exp-- > 0)
-        base = ((base%M) *10) % M;
-
-    return (int) base;
-}
-
-
-void preprocess() {
-    fill(newton[0], newton[0] + MAX_N, 1);
-    fill(newton[1], newton[1] + MAX_N, 1);
-    for(int i = 1; i < MAX_N; i++) {
-        newton[i][0] = 1;
-        for(int j = 1; j < i; j++)
-            newton[i][j] = newton[i-1][j] + newton[i-1][j-1];
-    }
-}
-
-void binomio(int n, int k) {
-    stack<pair<int, int>> ric;
-    while(1) {
-        if(n <= MAX_N && k <= MAX_N)
-            return newton[k][n];
-    }
-}
-
-int calcola() {
-    long long ris = 0;
-    ris = N - K + 1;
-    for(int i = 0; i < N - K; i++)
-        ris = (ris * 10) % M;
-    if(N/K > 1) {
-        ris = (ris + M - (N/K - 1)) % M;
-        if(N % K > 0) {
-            long long shift = N % K + 1;
-            for(int i = 0; i < N % K; i++)
-                shift = (shift * 10) % M;
-            ris = (ris + M - shift) % M;
-        }
-    }
-    return ris;
-}
 
 int main()
 {
+#ifdef EVAL
     freopen("input.txt", "r", stdin);
     freopen("output.txt", "w", stdout);
+#endif
 
-    scanf("%d %d", &N, &K);
-
-    for(int i = 0; i < 100; i++)
-        fprintf(stderr, "%d\n", potenza(i));
-    printf("%d\n", calcola());
-
-    return 0;
+    scanf("%d", &K);
+    scanf(" %*s%n", &S);
+    S--;
+    printf("%lld\n", conta());
 }

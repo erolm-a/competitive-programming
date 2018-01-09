@@ -1,49 +1,34 @@
-#include <cstdio>
-#include <vector>
-#include <climits>
-#include <algorithm>
+#include <bits/stdc++.h>
 
 using namespace std;
 
-#define MAX 5000
+#define MAX_N 5000
+#define MAX_B 5000
+int prezzi[MAX_N+1];
+int dp[MAX_N+1][MAX_B+1];
+int chosen[MAX_N+1][MAX_B+1]; // indica l'oggetto scelto
 
-unsigned max_budget, N;
+int main()
+{
+#ifdef EVAL
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
+    int N, W;
+    scanf("%d %d", &N, &W);
+    for(int i = 1; i <= N; i++)
+        scanf("%d", prezzi + i);
 
-int tot;
-vector<unsigned> sol;
-unsigned int prezzo[MAX];
-
-void risolvi(int budget, size_t disponibile, vector<unsigned> usati) {
-    if(budget == 0) {
-        tot = 0;
-        sol = usati;
-        return;
+    for(int i = 1; i <= N; i++) {
+        for(int w = 0; w <= W; w++) {
+            dp[i][w] = dp[i-1][w], chosen[i][w] = chosen[i-1][w];
+            if(prezzi[i] <= w && prezzi[i] + dp[i-1][w-prezzi[i]] > dp[i][w]) {
+                dp[i][w] = prezzi[i] + dp[i-1][w-prezzi[i]];
+                chosen[i][w] = i;
+            }
+        }
     }
-    if(budget > 0 && budget < tot) {
-        tot = budget;
-        sol = usati;
-    }
-    if(budget < 0 || disponibile == N)
-        return;
-    risolvi(budget, disponibile + 1, usati);
-    usati.push_back(prezzo[disponibile]);
-    risolvi(budget - prezzo[disponibile], disponibile + 1, usati);
-}
 
-int main() {
-    FILE* in = fopen("input.txt", "r"), *out = fopen("output.txt", "w");
-
-    fscanf(in, "%d %d", &N, &max_budget);
-    tot = max_budget;
-
-    for(size_t i = 0; i < N; i++)
-        fscanf(in, " %d", &prezzo[i]);
-
-
-    risolvi(max_budget, 0, {});
-    for(auto i: sol)
-        fprintf(out, "%d\n", i);
-
-    fclose(in);
-    fclose(out);
+    for(int w = W, c = chosen[N][W]; c != 0; w -= prezzi[c], c = chosen[c-1][w])
+        printf("%d\n", prezzi[c]);
 }

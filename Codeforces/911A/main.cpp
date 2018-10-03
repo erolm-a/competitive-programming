@@ -10,7 +10,7 @@ int main()
     for(int i = 0; i < N; i++) {
         cin >> n;
         if(n < min_elem)
-            min_elem = n, last_i = i;
+            min_elem = n, last_i = i, diff = INT_MAX;
         else if(n == min_elem) diff = min(diff, i - last_i), last_i = i;
     }
     cout << diff << '\n';

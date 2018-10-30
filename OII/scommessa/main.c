@@ -6,8 +6,8 @@ int found[MAX_N], found_n;
 
 int main()
 {
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
+    //freopen("input.txt", "r", stdin);
+    //freopen("output.txt", "w", stdout);
 
     int N;
     scanf("%d", &N);
@@ -20,6 +20,10 @@ int main()
         prefix[i+1] = prefix[i] + parity[i];
     for(int i = N-1; i > 0; --i)
         suffix[i-1] = suffix[i] + parity[i];
+
+    for(int i = 0; i < N ; i++)
+        fprintf(stderr, "%d ", suffix[i]);
+    fprintf(stderr, "\n");
 
     for(int i = 0; i < N; i++)
         if(prefix[i] == suffix[i] && prefix[i] == 0)

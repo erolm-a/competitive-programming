@@ -2,106 +2,58 @@
 
 using namespace std;
 
+using ll = long long;
+using pll = pair<long long, long long>;
+using pii = pair<int, int>;
 
-#define MAX_N 3010
-char T[MAX_N];
-int n;
-using ii = pair<int, int>;
-int SA[MAX_N], RA[MAX_N], temp_RA[MAX_N], temp_SA[MAX_N];
-int c[MAX_N];
 
-void counting_sort(int k) {
-    int t = 0, sum = 0, maxi = max(300, n);
-    memset(c, 0, sizeof(c));
-    for(int i = 0; i < n; i++)
-        c[i + k < n ? RA[i+k] : 0 ]++;
-    for(int i = 0; i < maxi; i++)
-        t = c[i], c[i] = sum, sum += t;
-    for(int i = 0; i < n; i++)
-        temp_SA[c[SA[i] + k < n ? RA[SA[i]+k] : 0 ]++] = SA[i];
-    copy(temp_SA, temp_SA + n, SA);
+#define MAX_N 2001
+#define MOD 29996224275833ll
+
+ll compute_hash(string& x) {
+    ll hash = 0;
+    for(char ch: x)
+        hash = ((hash * 26) % MOD + (ch - 'a' + 1)) % MOD;
+    return hash;
 }
 
-void build_suffarr() {
-    int k, r;
-    copy(T, T + n, RA);
-    iota(SA, SA + n, 0);
+ll hashes[MAX_N][MAX_N];
 
-    for(k = 1; k < n; k<<=1) {
-        counting_sort(k);
-        counting_sort(0);
-        temp_RA[SA[0]] = r = 0;
-        for(int i = 1; i < n; i++)
-            temp_RA[SA[i]] = RA[SA[i]] == RA[SA[i-1]] && RA[SA[i]+k] == RA[SA[i-1] + k] ?
-                        r : ++r;
-        copy(temp_RA, temp_RA + n, RA);
-        if(RA[SA[n-1]] == n-1) return;
-    }
-}
+int main() {
+    cin.sync_with_stdio(false);
+    cin.tie(nullptr);
 
-ii find_occ(string& occ)
-{
-    int m = occ.size();
-    int lo = 0, hi = n - 1, mid = lo;
-    while(lo < hi)
-    {
-        mid = (lo + hi)/2;
-        int res = strncmp(T + SA[mid], occ.c_str(), m);
-        if(res >= 0) hi = mid;
-        else lo = mid +1;
-    }
-    if(strncmp(T + SA[lo], occ.c_str(), m)) return {-1, -1};
-    ii ans; ans.first = lo;
+    string a, b, c;
 
-    lo = 0, hi = n-1;
-    while(lo < hi)
-    {
-        mid = (lo + hi)/2;
-        int res = strncmp(T + SA[mid], occ.c_str(), m);
-        if(res > 0) hi = mid;
-        else lo = mid+1;
-    }
-    if(strncmp(T + SA[hi], occ.c_str(), m) != 0) hi--;
-    ans.second = hi;
-    return ans;
-}
+    cin >> a >> b >> c;
 
-int main()
-{
-    ios_base::sync_with_stdio(false);
-    cin >> T;
-    n = strlen(T);
-    T[n++] = '$';
+    ll b_hash = compute_hash(b),
+       c_hash = compute_hash(c);
 
-    string s_beg, s_end;
-    cin >> s_beg >> s_end;
+    //cout << b_hash << endl << c_hash << endl;
+    for(int i = 0; i < a.size(); i++ )
+        for(int j = i; j < a.size(); j++ )
+            hashes[i][j] = ((j > 0 ? (hashes[i][j-1] * 26) % MOD : 0) + (a[j] - 'a' + 1)) % MOD;
 
-    build_suffarr();
+    int res = 0;
 
-    ii begs = find_occ(s_beg), ends = find_occ(s_end);
-    vector<int> begv, endv;
+    unordered_set<ll> diffs;
+    for(int i = 0; i < a.size() - b.size(); i++)
+        if(hashes[i][i + b.size() - 1] == b_hash) {
 
-    if(begs.first == -1 || begs.second == -1 || ends.first == -1 || ends.second == -1) {
-        cout << "0\n"; return 0;
-    }
+            for(int j = i; j < a.size() - c.size() + 1; j++)
+                if(hashes[j][j + c.size() - 1] == c_hash)
+                {
+                    ll cur_hash = hashes[i][j + c.size() - 1];
+                    auto it = diffs.find(cur_hash);
+                    if (it == diffs.end()) {
+                        res++;
+                        diffs.insert(cur_hash);
 
-    for(int i = begs.first; i <= begs.second; i++)
-        begv.push_back(SA[i]);
+                    }
+                }
+        }
 
-    for(int i = ends.first; i <= ends.second; i++)
-        endv.push_back(SA[i]);
+    cout << res << endl;
 
-    // stupid O(N^2) approach - today I'm sick and tired of doing the O(NlogN) version
-
-    unordered_set<string> found;
-    for(int i: begv)
-        for(int j: endv)
-            if(i <= j) {
-                string str(T + i, j - i + 1);
-                cout << "Testo la stringa: " << str << '\n';
-                found.insert(string(T + i, j - i + 1));
-            }
-    cout << found.size() << '\n';
-
-    return 0;
 }

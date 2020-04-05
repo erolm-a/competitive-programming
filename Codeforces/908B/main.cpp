@@ -14,8 +14,8 @@ bool possible()
 {
     int h = start_h, w = start_w;
 
-    for(int i = 0; i < sz_S; i++) {
-        if(maze[h][w] == 'E') return true;
+    for(int i = 0; i < sz_S && maze[h][w] != 'E'; i++) {
+
         switch(perm[S[i] - '0']) {
         case 0:
             h--; break;
@@ -29,7 +29,7 @@ bool possible()
         if(!check(h, w))
             return false;
     }
-    return false;
+    return (maze[h][w] == 'E');
 
 }
 int count()
